@@ -1,7 +1,10 @@
 package cos
 
 import (
+	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -73,7 +76,7 @@ func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskN
 		return err
 	}
 
-	slices, err := b.PerformSliceUplaod(ctx, dst, uploadID, fd)
+	slices, err := b.PerformSliceUpload(ctx, dst, uploadID, fd)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string) (string, error
 		return "", err
 	}
 	imur := &InitiateMultipartUploadResult{}
-	err := XMLDecode(res.Body, imur)
+	err = XMLDecode(res.Body, imur)
 	if err != nil {
 		return "", err
 	}
@@ -103,4 +106,71 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string) (string, error
 
 // CompleteSliceUpload finish slice Upload
 func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File, slice []*ObjectSlice) error {
+	return nil
+}
+
+// PerformSliceUpload perform slice upload
+func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File) ([]*ObjectSlice, error) {
+	return nil, nil
+}
+
+func (b *Bucket) getFileSlices(fd *os.File, uploadID string) ([]*ObjectSlice, error) {
+	sliceSize := b.conn.conf.PartSize
+	fi, err := fd.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	fileSize := fi.Size()
+	oss := []*ObjectSlice{}
+	var i int
+	var offset int64
+	for fileSize > 0 {
+		var size int64
+		if fileSize > sliceSize {
+			size = sliceSize
+		} else {
+			size = fileSize
+		}
+		i++
+		MD5, err := getFileMD5(fd, offset, size)
+		if err != nil {
+			return nil, err
+		}
+
+		osl := &ObjectSlice{}
+		osl.Size = size
+		osl.Number = i
+		osl.Offset = offset
+		osl.UploadID = uploadID
+		osl.MD5 = MD5
+		oss = append(oss, osl)
+
+		fileSize -= sliceSize
+		offset += sliceSize
+	}
+}
+
+func getFileMD5(fd *os.File, offset, size int64) (string, error) {
+	buf := make([]byte, size)
+	_, err := fd.ReadAt(buf, offset)
+	if err != nil {
+		return "", err
+	}
+
+	encoder := md5.New()
+	encoder.Write(buf)
+	b := encoder.Sum(nil)
+
+	return hex.EncodeToString(b), nil
+}
+
+func getFilePartContent(fd *os.File, offset, size int64) (io.Reader, error) {
+	buf := make([]byte, size)
+	_, err := fd.ReadAt(buf, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(buf), nil
 }
