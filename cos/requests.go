@@ -85,3 +85,11 @@ func (lup *ListUploadParam) GenParams() map[string]interface{} {
 	return params
 
 }
+
+// CompleteMultipartUpload compelete slice upload
+type CompleteMultipartUpload struct {
+	Part []struct {
+		PartNumber int
+		ETag       string
+	}
+}

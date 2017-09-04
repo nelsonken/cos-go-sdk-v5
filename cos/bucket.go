@@ -23,7 +23,8 @@ type ObjectSlice struct {
 	Offset   int64
 	Number   int
 	MD5      string
-	src      string
+	Dst      string
+	Result   bool
 }
 
 // UploadObject 上传文件
@@ -65,7 +66,7 @@ func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer)
 }
 
 // UploadObjectBySlice upload by slice
-func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskNum uint) error {
+func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskNum int) error {
 	uploadID, err := b.InitSliceUpload(ctx, dst)
 	if err != nil {
 		return err
@@ -76,7 +77,7 @@ func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskN
 		return err
 	}
 
-	slices, err := b.PerformSliceUpload(ctx, dst, uploadID, fd)
+	slices, err := b.PerformSliceUpload(ctx, dst, uploadID, fd, taskNum)
 	if err != nil {
 		return err
 	}
@@ -110,11 +111,64 @@ func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, 
 }
 
 // PerformSliceUpload perform slice upload
-func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File) ([]*ObjectSlice, error) {
+func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File, taskNum int) ([]*ObjectSlice, error) {
 	return nil, nil
+	oss, err := b.getFileSlices(fd, uploadID, dst)
+	if err != nil {
+		return nil, err
+	}
+	jobNum := len(oss)
+	jobs := make(chan *ObjectSlice, jobNum)
+	result := make(chan *ObjectSlice, jobNum)
+
+	for i := 0; i < taskNum; i++ {
+		go b.Worker(ctx, fd, jobs, result)
+	}
+
+	for _, osl := range oss {
+		jobs <- osl
+	}
+	close(jobs)
+
+	for i := 0; i < jobNum; i++ {
+		res := <-result
+		if !res.Result {
+			return nil, SliceError{fmt.Sprintf("part info : num:%s, md5:%s", res.Number, res.MD5)}
+		}
+	}
+
+	return oss, nil
 }
 
-func (b *Bucket) getFileSlices(fd *os.File, uploadID string) ([]*ObjectSlice, error) {
+// Worker woker for slice upload
+func (b *Bucket) Worker(ctx context.Context, fd *os.File, jobs <-chan *ObjectSlice, result chan<- *ObjectSlice) {
+	for job := range jobs {
+		content, err := getFilePartContent(fd, job.Offset, job.Size)
+		if err != nil {
+			continue
+		}
+
+		err = b.UploadSlice(ctx, job.UploadID, job.Dst, job.Number, job.MD5, content)
+		if err == nil {
+			job.Result = true
+		}
+
+		result <- job
+	}
+}
+
+// UploadSlice upload one slice
+func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number int, etag string, content io.Reader) error {
+	param := map[string]interface{}{
+		"PartNumber": number,
+		"ETag":       etag,
+	}
+	_, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
+
+	return err
+}
+
+func (b *Bucket) getFileSlices(fd *os.File, uploadID, dst string) ([]*ObjectSlice, error) {
 	sliceSize := b.conn.conf.PartSize
 	fi, err := fd.Stat()
 	if err != nil {
@@ -144,11 +198,14 @@ func (b *Bucket) getFileSlices(fd *os.File, uploadID string) ([]*ObjectSlice, er
 		osl.Offset = offset
 		osl.UploadID = uploadID
 		osl.MD5 = MD5
+		osl.Dst = dst
 		oss = append(oss, osl)
 
 		fileSize -= sliceSize
 		offset += sliceSize
 	}
+
+	return oss, nil
 }
 
 func getFileMD5(fd *os.File, offset, size int64) (string, error) {

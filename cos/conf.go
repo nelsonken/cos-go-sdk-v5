@@ -14,7 +14,7 @@ type Conf struct {
 	SecretKey  string
 	Region     string
 	PartSize   int64
-	RetryTimes uint
+	RetryTimes int
 	UA         string
 	Domain     string
 }
