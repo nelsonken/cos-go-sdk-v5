@@ -55,8 +55,6 @@ func TestClient_ListBucketContents(t *testing.T) {
 	}
 }
 
-
-
 func TestClient_ListUploading(t *testing.T) {
 	setUp()
 	bucket := "hellocos"
@@ -67,7 +65,7 @@ func TestClient_ListUploading(t *testing.T) {
 		return
 	}
 
-	for _, obj := range lupr.Upload{
+	for _, obj := range lupr.Upload {
 		fmt.Println(obj.Key, " ", obj.UploadID)
 		err = client.Bucket(bucket).ObjectExists(ctx, obj.Key)
 		fmt.Println(err)

@@ -145,8 +145,7 @@ func (pe ParamError) Error() string {
 	return fmt.Sprintf("参数错误:%s", pe.Message)
 }
 
-
-// ParamError slice upload err
+// FileError slice upload err
 type FileError struct {
 	Message string
 }
