@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"encoding/xml"
+	"strings"
 )
 
 // Bucket bucket
@@ -68,10 +69,15 @@ func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer)
 
 // UploadObjectBySlice upload by slice
 func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskNum int) error {
+	if taskNum < 1 {
+		return ParamError{"taskNum 必须大于1"}
+	}
+
 	uploadID, err := b.InitSliceUpload(ctx, dst)
 	if err != nil {
 		return err
 	}
+	fmt.Println(uploadID)
 
 	fd, err := os.Open(src)
 	if err != nil {
@@ -93,7 +99,7 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string) (string, error
 	param := map[string]interface{}{
 		"uploads": "",
 	}
-	res, err := b.conn.Do(ctx, "PUT", b.Name, obj, param, nil, nil)
+	res, err := b.conn.Do(ctx, "POST", b.Name, obj, param, nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -125,7 +131,10 @@ func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, 
 	if err != nil {
 		return  err
 	}
-	_, err = b.conn.Do(ctx, "POST", b.Name, dst, nil, nil,  bytes.NewReader(cmuXML))
+	param := map[string]interface{}{
+		"uploadId":uploadID,
+	}
+	_, err = b.conn.Do(ctx, "POST", b.Name, dst, param, nil,  bytes.NewReader(cmuXML))
 
 	return  err
 }
@@ -136,6 +145,7 @@ func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, f
 	if err != nil {
 		return nil, err
 	}
+
 	jobNum := len(oss)
 	jobs := make(chan *ObjectSlice, jobNum)
 	result := make(chan *ObjectSlice, jobNum)
@@ -152,7 +162,7 @@ func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, f
 	for i := 0; i < jobNum; i++ {
 		res := <-result
 		if !res.Result {
-			return nil, SliceError{fmt.Sprintf("part info : num:%s, md5:%s", res.Number, res.MD5)}
+			return nil, SliceError{fmt.Sprintf("part info : num:%d, md5:%s", res.Number, res.MD5)}
 		}
 	}
 
@@ -180,9 +190,12 @@ func (b *Bucket) Worker(ctx context.Context, fd *os.File, jobs <-chan *ObjectSli
 func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number int, etag string, content io.Reader) error {
 	param := map[string]interface{}{
 		"PartNumber": number,
-		"ETag":       etag,
+		"uploadId":       uploadID,
 	}
-	_, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
+	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
+	if strings.Trim(res.Header.Get("Etag"), "\"") != etag {
+		return FileError{"cos-etag与文件MD5不匹配"}
+	}
 
 	return err
 }
