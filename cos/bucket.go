@@ -5,10 +5,10 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"os"
-	"encoding/xml"
 	"strings"
 )
 
@@ -117,26 +117,26 @@ func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, 
 	cmu := &CompleteMultipartUpload{}
 	cmu.Part = []struct {
 		PartNumber int
-		ETag  string
+		ETag       string
 	}{}
 
 	for _, osl := range slice {
 		cmu.Part = append(cmu.Part, struct {
 			PartNumber int
 			ETag       string
-		}{PartNumber:osl.Number , ETag: osl.MD5})
+		}{PartNumber: osl.Number, ETag: osl.MD5})
 	}
 
 	cmuXML, err := xml.Marshal(cmu)
 	if err != nil {
-		return  err
+		return err
 	}
 	param := map[string]interface{}{
-		"uploadId":uploadID,
+		"uploadId": uploadID,
 	}
-	_, err = b.conn.Do(ctx, "POST", b.Name, dst, param, nil,  bytes.NewReader(cmuXML))
+	_, err = b.conn.Do(ctx, "POST", b.Name, dst, param, nil, bytes.NewReader(cmuXML))
 
-	return  err
+	return err
 }
 
 // PerformSliceUpload perform slice upload
@@ -190,7 +190,7 @@ func (b *Bucket) Worker(ctx context.Context, fd *os.File, jobs <-chan *ObjectSli
 func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number int, etag string, content io.Reader) error {
 	param := map[string]interface{}{
 		"PartNumber": number,
-		"uploadId":       uploadID,
+		"uploadId":   uploadID,
 	}
 	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
 	if strings.Trim(res.Header.Get("Etag"), "\"") != etag {
@@ -267,11 +267,11 @@ func getFilePartContent(fd *os.File, offset, size int64) (io.Reader, error) {
 // AbortUpload 放弃上传
 func (b *Bucket) AbortUpload(ctx context.Context, obj, uploadID string) error {
 	param := map[string]interface{}{
-		"uploadId":uploadID,
+		"uploadId": uploadID,
 	}
 	_, err := b.conn.Do(ctx, "DELETE", b.Name, obj, param, nil, nil)
 
-	return  err
+	return err
 }
 
 // ObjectExists object exists

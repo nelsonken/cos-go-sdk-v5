@@ -82,7 +82,7 @@ func interfaceToString(i interface{}) string {
 }
 
 func getParamStr(params map[string]interface{}) string {
-	if params == nil  || len(params) == 0 {
+	if params == nil || len(params) == 0 {
 		return ""
 	}
 

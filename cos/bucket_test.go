@@ -1,8 +1,8 @@
 package cos
 
 import (
-	"testing"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -11,7 +11,7 @@ func TestBucket_UploadObject(t *testing.T) {
 	bu := "hellocos"
 	ctx := GetTimeoutCtx(time.Second * 30)
 	objName := "testfile"
-	objContent := strings.Repeat("t", 1024 * 1024)
+	objContent := strings.Repeat("t", 1024*1024)
 	err := client.Bucket(bu).UploadObject(ctx, objName, strings.NewReader(objContent), &AccessControl{})
 
 	if err != nil {
