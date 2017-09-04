@@ -1,6 +1,8 @@
 package cos
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // ListAllMyBucketsResult 获取bucket列表的结果
 type ListAllMyBucketsResult struct {
@@ -112,7 +114,7 @@ type ListMultipartUploadsResult struct {
 type InitiateMultipartUploadResult struct {
 	Bucket   string
 	Key      string
-	UploadID string `xml"UploadId"`
+	UploadID string `xml:"UploadId"`
 }
 
 // CompleteMultipartUploadResult compeleted slice upload
@@ -131,4 +133,25 @@ type SliceError struct {
 // Error implements error
 func (se SliceError) Error() string {
 	return fmt.Sprintf("上传分片失败:%s", se.Message)
+}
+
+// ParamError slice upload err
+type ParamError struct {
+	Message string
+}
+
+// Error implements error
+func (pe ParamError) Error() string {
+	return fmt.Sprintf("参数错误:%s", pe.Message)
+}
+
+
+// ParamError slice upload err
+type FileError struct {
+	Message string
+}
+
+// Error implements error
+func (fe FileError) Error() string {
+	return fmt.Sprintf("文件错误:%s", fe.Message)
 }
