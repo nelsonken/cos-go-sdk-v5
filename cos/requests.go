@@ -49,6 +49,9 @@ func (qc *QueryCondition) GenParams() map[string]interface{} {
 		if v == "" {
 			delete(params, k)
 		}
+		if v == 0 {
+			delete(params, k)
+		}
 	}
 
 	return params
@@ -77,6 +80,10 @@ func (lup *ListUploadParam) GenParams() map[string]interface{} {
 
 	for k, v := range params {
 		if v == "" {
+			delete(params, k)
+		}
+
+		if v == 0 {
 			delete(params, k)
 		}
 	}

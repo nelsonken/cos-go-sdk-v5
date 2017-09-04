@@ -29,7 +29,7 @@ func getSignTime() string {
 }
 
 func getHeadKeys(headers map[string]string) string {
-	if headers == nil {
+	if headers == nil || len(headers) == 0 {
 		return ""
 	}
 
@@ -43,7 +43,7 @@ func getHeadKeys(headers map[string]string) string {
 }
 
 func getParamKeys(params map[string]interface{}) string {
-	if params == nil {
+	if params == nil || len(params) == 0 {
 		return ""
 	}
 
@@ -82,7 +82,7 @@ func interfaceToString(i interface{}) string {
 }
 
 func getParamStr(params map[string]interface{}) string {
-	if params == nil {
+	if params == nil  || len(params) == 0 {
 		return ""
 	}
 
@@ -97,7 +97,7 @@ func getParamStr(params map[string]interface{}) string {
 }
 
 func getHeadStr(headers map[string]string) string {
-	if headers == nil {
+	if headers == nil || len(headers) == 0 {
 		return ""
 	}
 

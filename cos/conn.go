@@ -25,18 +25,16 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 	if err != nil {
 		return nil, err
 	}
-
 	conn.signHeader(req, params, headers)
-	headers["User-Agent"] = conn.conf.UA
-	headers["Content-Length"] = strconv.FormatInt(req.ContentLength, 10)
+	req.Header.Set("User-Agent", conn.conf.UA)
+	req.Header.Set("Content-Length", strconv.FormatInt(req.ContentLength, 10))
 	setHeader(req, headers)
 
 	res, err := conn.c.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
-	if res.StatusCode < 200 && res.StatusCode >= 300 {
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return checkHTTPErr(res)
 	}
 
@@ -44,7 +42,7 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 }
 
 func getQueryStr(params map[string]interface{}) string {
-	if params == nil {
+	if params == nil || len(params) == 0 {
 		return ""
 	}
 

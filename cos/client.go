@@ -131,8 +131,8 @@ func (c *Client) ListBucketContents(ctx context.Context, name string, qc *QueryC
 }
 
 // ListUploading list uploading task
-func (c *Client) ListUploading(ctx context.Context, lu *ListUploadParam) (*ListMultipartUploadsResult, error) {
-	res, err := c.conn.Do(ctx, "GET", "", "", lu.GenParams(), nil, nil)
+func (c *Client) ListUploading(ctx context.Context, bucket string, lu *ListUploadParam) (*ListMultipartUploadsResult, error) {
+	res, err := c.conn.Do(ctx, "GET", bucket, "", lu.GenParams(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
