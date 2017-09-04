@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"encoding/xml"
 )
 
 // Bucket bucket
@@ -107,12 +108,30 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string) (string, error
 
 // CompleteSliceUpload finish slice Upload
 func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File, slice []*ObjectSlice) error {
-	return nil
+	cmu := &CompleteMultipartUpload{}
+	cmu.Part = []struct {
+		PartNumber int
+		ETag  string
+	}{}
+
+	for _, osl := range slice {
+		cmu.Part = append(cmu.Part, struct {
+			PartNumber int
+			ETag       string
+		}{PartNumber:osl.Number , ETag: osl.MD5})
+	}
+
+	cmuXML, err := xml.Marshal(cmu)
+	if err != nil {
+		return  err
+	}
+	_, err = b.conn.Do(ctx, "POST", b.Name, dst, nil, nil,  bytes.NewReader(cmuXML))
+
+	return  err
 }
 
 // PerformSliceUpload perform slice upload
 func (b *Bucket) PerformSliceUpload(ctx context.Context, dst, uploadID string, fd *os.File, taskNum int) ([]*ObjectSlice, error) {
-	return nil, nil
 	oss, err := b.getFileSlices(fd, uploadID, dst)
 	if err != nil {
 		return nil, err
@@ -230,4 +249,21 @@ func getFilePartContent(fd *os.File, offset, size int64) (io.Reader, error) {
 	}
 
 	return bytes.NewReader(buf), nil
+}
+
+// AbortUpload 放弃上传
+func (b *Bucket) AbortUpload(ctx context.Context, obj, uploadID string) error {
+	param := map[string]interface{}{
+		"uploadId":uploadID,
+	}
+	_, err := b.conn.Do(ctx, "DELETE", b.Name, obj, param, nil, nil)
+
+	return  err
+}
+
+// ObjectExists object exists
+func (b *Bucket) ObjectExists(ctx context.Context, obj string) error {
+	_, err := b.conn.Do(ctx, "HEAD", b.Name, obj, nil, nil, nil)
+
+	return err
 }
