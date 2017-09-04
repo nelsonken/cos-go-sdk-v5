@@ -114,3 +114,21 @@ type InitiateMultipartUploadResult struct {
 	Key      string
 	UploadID string `xml"UploadId"`
 }
+
+// CompleteMultipartUploadResult compeleted slice upload
+type CompleteMultipartUploadResult struct {
+	Location string
+	Bucket   string
+	Key      string
+	ETag     string
+}
+
+// SliceError slice upload err
+type SliceError struct {
+	Message string
+}
+
+// Error implements error
+func (se SliceError) Error() string {
+	return fmt.Sprintf("上传分片失败:%s", se.Message)
+}
