@@ -17,5 +17,7 @@
 
 ## 使用
 
+```go
 cleint := cos.New(appid, secretid, secretkey, region)
 client.Bucket(name).PutObject(...)
+```
