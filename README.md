@@ -1,6 +1,6 @@
 # cos-go-sdk-v5 
 
-*腾讯云 云储存API5.0 golang实现*
+*腾讯云 对象储存（cos） API5.0 golang sdk*
 
 ---
 
