@@ -23,16 +23,22 @@ client.Bucket(name).PutObject(...)
 ---
 
 - bucket
-    - 创建bucket
-    - 删除bucket
-    - 列出bucket内容
-    - 列出正在上传的object
+    - [x] 列出bucket列表
+    - [x] 创建bucket
+    - [x] 删除bucket
+    - [x] 设置bucket ACL
+    - [x] 列出bucket内容
+    - [x] bucket是否存在
+    - [x] 列出正在上传的obj
+
 
 - objcet
-    - 普通上传
-    - 多线程上传
-    - 删除
-    - 下载
-    - 复制
+    - [x] 普通上传
+    - [x] 多线程分片上传
+    - [x] 删除
+    - [x] 下载
+    - [x] 复制
+    - [x] 上传分片
+    
 
 
