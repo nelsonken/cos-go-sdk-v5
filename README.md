@@ -1,14 +1,21 @@
-# cos-go-sdk-v5 腾讯云 云储存API5.0 golang实现
+# cos-go-sdk-v5 
 
-## 安装使用
+*腾讯云 云储存API5.0 golang实现*
+
 ---
 
-- 安装
+## 安装使用
+
+---
+
+#### 安装
+
 ```shell
 go get -u github.com/nelsonken/cos-go-sdk-v5/cos
 ```
 
-- 使用
+#### 使用
+
 ```go
 package main
 
@@ -25,7 +32,10 @@ client.Bucket(name).PutObject(...)
 
 ---
 
-- bucket
+### bucket
+
+---
+
     - [x] 列出bucket列表
     - [x] 创建bucket
     - [x] 删除bucket
@@ -38,7 +48,10 @@ client.Bucket(name).PutObject(...)
     - [ ] lifcycle设置 
 
 
-- objcet
+### objcet
+
+---
+
     - [x] 普通上传
     - [x] 多线程分片上传（整合分片上传）
     - [x] 删除
