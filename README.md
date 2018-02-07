@@ -14,7 +14,7 @@ package main
 
 import "github.com/nelsonken/cos-go-sdk-v5/cos"
 
-cleint := cos.New(appid, secretid, secretkey, region)
+client := cos.New(appid, secretid, secretkey, region)
 client.Bucket(name).PutObject(...)
 
 ```
