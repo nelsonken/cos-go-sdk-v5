@@ -36,32 +36,32 @@ client.Bucket(name).PutObject(...)
 
 ---
 
-    - [x] 列出bucket列表
-    - [x] 创建bucket
-    - [x] 删除bucket
-    - [x] 设置bucket ACL
-    - [x] 列出bucket内容
-    - [x] bucket是否存在
-    - [x] 列出正在上传的obj
-    - [ ] ACL设置
-    - [ ] CORS 跨域
-    - [ ] lifcycle设置 
+- [x] 列出bucket列表
+- [x] 创建bucket
+- [x] 删除bucket
+- [x] 设置bucket ACL
+- [x] 列出bucket内容
+- [x] bucket是否存在
+- [x] 列出正在上传的obj
+- [ ] ACL设置
+- [ ] CORS 跨域
+- [ ] lifcycle设置 
 
 
 ### objcet
 
 ---
 
-    - [x] 普通上传
-    - [x] 多线程分片上传（整合分片上传）
-    - [x] 删除
-    - [x] 下载
-    - [x] 复制
-    - [x] 初始化分片上传
-    - [x] 上传分片
-    - [x] 列出正在上传分片
-    - [x] 完成分片上传
-    - [x] 放弃上传
+- [x] 普通上传
+- [x] 多线程分片上传（整合分片上传）
+- [x] 删除
+- [x] 下载
+- [x] 复制
+- [x] 初始化分片上传
+- [x] 上传分片
+- [x] 列出正在上传分片
+- [x] 完成分片上传
+- [x] 放弃上传
 
 
     
