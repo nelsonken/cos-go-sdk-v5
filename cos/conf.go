@@ -1,7 +1,7 @@
 package cos
 
 const (
-	defaultPartSize   = 1024 * 1024
+	defaultPartSize   = 60 * 1024 * 1024
 	defaultRetryTimes = 3
 	defaultUA         = "cos-go-sdk-v5.2.9"
 	defaultDomain     = "myqcloud.com"

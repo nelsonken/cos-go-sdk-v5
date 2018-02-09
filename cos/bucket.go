@@ -29,6 +29,19 @@ type ObjectSlice struct {
 	Result   bool
 }
 
+// 获得云存储上文件信息
+func (b *Bucket) HeadObject(ctx context.Context, object string) error {
+	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
+	//fmt.Printf("%-18s: %d\n", "Content-Length", resq.ContentLength)
+	//fmt.Printf("%-18s: %s\n", "Content-Type", resq.c)
+	for k, v := range resq.Header {
+		value := fmt.Sprintf("%s", v)
+		fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
+	}
+
+	return err
+}
+
 // UploadObject 上传文件
 func (b *Bucket) UploadObject(ctx context.Context, object string, content io.Reader, acl *AccessControl) error {
 	_, err := b.conn.Do(ctx, "PUT", b.Name, object, nil, acl.GenHead(), content)
@@ -68,16 +81,16 @@ func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer)
 }
 
 // UploadObjectBySlice upload by slice
-func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskNum int) error {
+func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskNum int, headers map[string]string) error {
 	if taskNum < 1 {
 		return ParamError{"taskNum 必须大于1"}
 	}
 
-	uploadID, err := b.InitSliceUpload(ctx, dst)
+	uploadID, err := b.InitSliceUpload(ctx, dst, headers)
 	if err != nil {
 		return err
 	}
-	fmt.Println(uploadID)
+	//fmt.Println(uploadID)
 
 	fd, err := os.Open(src)
 	if err != nil {
@@ -95,11 +108,11 @@ func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskN
 }
 
 // InitSliceUpload init upload by slice
-func (b *Bucket) InitSliceUpload(ctx context.Context, obj string) (string, error) {
+func (b *Bucket) InitSliceUpload(ctx context.Context, obj string, headers map[string]string) (string, error) {
 	param := map[string]interface{}{
 		"uploads": "",
 	}
-	res, err := b.conn.Do(ctx, "POST", b.Name, obj, param, nil, nil)
+	res, err := b.conn.Do(ctx, "POST", b.Name, obj, param, headers, nil)
 	if err != nil {
 		return "", err
 	}
@@ -180,6 +193,8 @@ func (b *Bucket) Worker(ctx context.Context, fd *os.File, jobs <-chan *ObjectSli
 		err = b.UploadSlice(ctx, job.UploadID, job.Dst, job.Number, job.MD5, content)
 		if err == nil {
 			job.Result = true
+		} else {
+			job.Result = false
 		}
 
 		result <- job
@@ -193,6 +208,11 @@ func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number i
 		"uploadId":   uploadID,
 	}
 	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
+
+	if err != nil {
+		return FileError{"PUT数据错误:" + err.Error()}
+	}
+
 	if strings.Trim(res.Header.Get("Etag"), "\"") != etag {
 		return FileError{"cos-etag与文件MD5不匹配"}
 	}
