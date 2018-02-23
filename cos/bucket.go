@@ -32,8 +32,6 @@ type ObjectSlice struct {
 // 获得云存储上文件信息
 func (b *Bucket) HeadObject(ctx context.Context, object string) error {
 	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
-	//fmt.Printf("%-18s: %d\n", "Content-Length", resq.ContentLength)
-	//fmt.Printf("%-18s: %s\n", "Content-Type", resq.c)
 	for k, v := range resq.Header {
 		value := fmt.Sprintf("%s", v)
 		fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
@@ -90,9 +88,9 @@ func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskN
 	if err != nil {
 		return err
 	}
-	//fmt.Println(uploadID)
 
 	fd, err := os.Open(src)
+	defer fd.Close()
 	if err != nil {
 		return err
 	}
