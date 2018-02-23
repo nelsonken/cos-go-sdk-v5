@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -103,7 +102,7 @@ func getHeadStr(headers map[string]string) string {
 
 	tmp := []string{}
 	for k, v := range headers {
-		str := fmt.Sprintf("%s=%s", strings.ToLower(k), url.QueryEscape(v))
+		str := fmt.Sprintf("%s=%s", strings.ToLower(k), escape(v))
 		tmp = append(tmp, str)
 	}
 	sort.Strings(tmp)
