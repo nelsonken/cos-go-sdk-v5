@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -25,7 +26,7 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(url)
+	fmt.Println(url)
 	conn.signHeader(req, params, headers)
 	req.Header.Set("User-Agent", conn.conf.UA)
 	req.Header.Set("Content-Length", strconv.FormatInt(req.ContentLength, 10))
@@ -66,9 +67,14 @@ func getQueryStr(params map[string]interface{}) string {
 
 func (conn *Conn) buildURL(bucket, object, queryStr string) string {
 	domain := fmt.Sprintf("%s-%s.cos.%s.%s", bucket, conn.conf.AppID, conn.conf.Region, conn.conf.Domain)
-	url := fmt.Sprintf("http://%s/%s%s", domain, object, queryStr)
+	url := fmt.Sprintf("http://%s/%s%s", domain, escape(object), queryStr)
 
 	return url
+}
+
+func escape(str string) string {
+	//go语言中将空格编码为+，需要改为%20
+	return strings.Replace(url.QueryEscape(str), "+", "%20", -1)
 }
 
 func setHeader(req *http.Request, headers map[string]string) {
