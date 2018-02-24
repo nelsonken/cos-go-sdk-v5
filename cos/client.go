@@ -51,6 +51,7 @@ func (c *Client) GetBucketList(ctx context.Context) (*ListAllMyBucketsResult, er
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	res, err = checkHTTPErr(res)
 	if err != nil {
@@ -68,7 +69,10 @@ func (c *Client) GetBucketList(ctx context.Context) (*ListAllMyBucketsResult, er
 
 // CreateBucket 建立bucket
 func (c *Client) CreateBucket(ctx context.Context, name string, acl *AccessControl) error {
-	_, err := c.conn.Do(ctx, "PUT", name, "", nil, acl.GenHead(), nil)
+	res, err := c.conn.Do(ctx, "PUT", name, "", nil, acl.GenHead(), nil)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
@@ -88,6 +92,7 @@ func (c *Client) GetBucketACL(ctx context.Context, name string) (*AccessControlP
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	aclp := &AccessControlPolicy{}
 
@@ -102,14 +107,20 @@ func (c *Client) GetBucketACL(ctx context.Context, name string) (*AccessControlP
 // SetBucketACL set bucket's acl
 func (c *Client) SetBucketACL(ctx context.Context, name string, acl *AccessControl) error {
 	params := map[string]interface{}{"acl": ""}
-	_, err := c.conn.Do(ctx, "PUT", name, "", params, acl.GenHead(), nil)
+	res, err := c.conn.Do(ctx, "PUT", name, "", params, acl.GenHead(), nil)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
 
 // BucketExists bucket exists?
 func (c *Client) BucketExists(ctx context.Context, name string) error {
-	_, err := c.conn.Do(ctx, "HEAD", name, "", nil, nil, nil)
+	res, err := c.conn.Do(ctx, "HEAD", name, "", nil, nil, nil)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
@@ -120,6 +131,7 @@ func (c *Client) ListBucketContents(ctx context.Context, name string, qc *QueryC
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	lbr := &ListBucketResult{}
 	err = XMLDecode(resp.Body, lbr)
@@ -136,6 +148,7 @@ func (c *Client) ListUploading(ctx context.Context, bucket string, lu *ListUploa
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	lmur := &ListMultipartUploadsResult{}
 	err = XMLDecode(res.Body, lmur)

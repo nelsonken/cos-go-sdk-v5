@@ -32,9 +32,13 @@ type ObjectSlice struct {
 // 获得云存储上文件信息
 func (b *Bucket) HeadObject(ctx context.Context, object string) error {
 	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
-	for k, v := range resq.Header {
-		value := fmt.Sprintf("%s", v)
-		fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
+	if err == nil {
+		defer resq.Body.Close()
+	} else {
+		for k, v := range resq.Header {
+			value := fmt.Sprintf("%s", v)
+			fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
+		}
 	}
 
 	return err
@@ -42,7 +46,10 @@ func (b *Bucket) HeadObject(ctx context.Context, object string) error {
 
 // UploadObject 上传文件
 func (b *Bucket) UploadObject(ctx context.Context, object string, content io.Reader, acl *AccessControl) error {
-	_, err := b.conn.Do(ctx, "PUT", b.Name, object, nil, acl.GenHead(), content)
+	res, err := b.conn.Do(ctx, "PUT", b.Name, object, nil, acl.GenHead(), content)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
@@ -54,14 +61,20 @@ func (b *Bucket) CopyObject(ctx context.Context, src, dst string, acl *AccessCon
 		"x-cos-source-url": srcURL,
 	}
 
-	_, err := b.conn.Do(ctx, "PUT", b.Name, dst, nil, header, nil)
+	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, nil, header, nil)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
 
 // DeleteObject delete object
 func (b *Bucket) DeleteObject(ctx context.Context, obj string) error {
-	_, err := b.conn.Do(ctx, "DELETE", b.Name, obj, nil, nil, nil)
+	res, err := b.conn.Do(ctx, "DELETE", b.Name, obj, nil, nil, nil)
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
@@ -90,10 +103,10 @@ func (b *Bucket) UploadObjectBySlice(ctx context.Context, dst, src string, taskN
 	}
 
 	fd, err := os.Open(src)
-	defer fd.Close()
 	if err != nil {
 		return err
 	}
+	defer fd.Close()
 
 	slices, err := b.PerformSliceUpload(ctx, dst, uploadID, fd, taskNum)
 	if err != nil {
@@ -114,6 +127,8 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string, headers map[st
 	if err != nil {
 		return "", err
 	}
+	defer res.Body.Close()
+
 	imur := &InitiateMultipartUploadResult{}
 	err = XMLDecode(res.Body, imur)
 	if err != nil {
@@ -145,7 +160,10 @@ func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, 
 	param := map[string]interface{}{
 		"uploadId": uploadID,
 	}
-	_, err = b.conn.Do(ctx, "POST", b.Name, dst, param, nil, bytes.NewReader(cmuXML))
+	res, err := b.conn.Do(ctx, "POST", b.Name, dst, param, nil, bytes.NewReader(cmuXML))
+	if err == nil {
+		defer res.Body.Close()
+	}
 
 	return err
 }
@@ -210,6 +228,7 @@ func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number i
 	if err != nil {
 		return FileError{"PUT数据错误:" + err.Error()}
 	}
+	defer res.Body.Close()
 
 	if strings.Trim(res.Header.Get("Etag"), "\"") != etag {
 		return FileError{"cos-etag与文件MD5不匹配"}

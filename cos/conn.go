@@ -26,17 +26,20 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(url)
+
 	conn.signHeader(req, params, headers)
 	req.Header.Set("User-Agent", conn.conf.UA)
 	req.Header.Set("Content-Length", strconv.FormatInt(req.ContentLength, 10))
 	setHeader(req, headers)
 
 	res, err := conn.c.Do(req)
+
 	if err != nil {
 		return nil, err
 	}
+
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		defer res.Body.Close()
 		return checkHTTPErr(res)
 	}
 
