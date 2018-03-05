@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -30,18 +31,13 @@ type ObjectSlice struct {
 }
 
 // 获得云存储上文件信息
-func (b *Bucket) HeadObject(ctx context.Context, object string) error {
+func (b *Bucket) HeadObject(ctx context.Context, object string) (http.Header, error) {
 	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
 	if err == nil {
 		defer resq.Body.Close()
-	} else {
-		for k, v := range resq.Header {
-			value := fmt.Sprintf("%s", v)
-			fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
-		}
 	}
 
-	return err
+	return resq.Header, err
 }
 
 // UploadObject 上传文件
