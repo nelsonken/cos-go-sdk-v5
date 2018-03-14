@@ -76,13 +76,19 @@ func (b *Bucket) DeleteObject(ctx context.Context, obj string) error {
 }
 
 // DownloadObject 下载对象
-func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer) error {
+func (b *Bucket) DownloadObject(ctx context.Context, object string, filePath string) error {
 	res, err := b.conn.Do(ctx, "GET", b.Name, object, nil, nil, nil)
 	if err != nil {
 		return err
 	}
 
-	_, err = io.Copy(w, res.Body)
+	fd, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.FileMode(0664))
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+
+	_, err = io.Copy(fd, res.Body)
 
 	return err
 }
