@@ -19,6 +19,7 @@ func New(o *Option) *Client {
 	conf.SecretID = o.SecretID
 	conf.SecretKey = o.SecretKey
 	conf.Region = o.Region
+	conf.Domain = o.Domain
 
 	conn := Conn{&http.Client{}, conf}
 	client.conn = &conn
