@@ -37,7 +37,7 @@ func TestBucket_UploadObjectBySlice(t *testing.T) {
 	ctx := GetTimeoutCtx(time.Second * 30)
 	dst := "testfile_slice"
 	src := "testfiles/test.zip"
-	err := client.Bucket(bu).UploadObjectBySlice(ctx, dst, src, 3)
+	err := client.Bucket(bu).UploadObjectBySlice(ctx, dst, src, 3, nil)
 	if err != nil {
 		t.Error(err)
 	}

@@ -12,13 +12,13 @@ type Client struct {
 }
 
 // New cos包的入口
-func New(appID, secretID, secretKey, region string) *Client {
+func New(o *Option) *Client {
 	client := Client{}
 	conf := getDefaultConf()
-	conf.AppID = appID
-	conf.SecretID = secretID
-	conf.SecretKey = secretKey
-	conf.Region = region
+	conf.AppID = o.AppID
+	conf.SecretID = o.SecretID
+	conf.SecretKey = o.SecretKey
+	conf.Region = o.Region
 
 	conn := Conn{&http.Client{}, conf}
 	client.conn = &conn
