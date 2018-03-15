@@ -6,4 +6,5 @@ type Option struct {
 	SecretKey string `mapstructure:"secret_key" json:"secret_key"`
 	Region    string `mapstructure:"region" json:"region"`
 	Domain    string `mapstructure:"domain" json:"domain"`
+	Bucket    string `mapstructure:"bucket" json:"bucket"`
 }

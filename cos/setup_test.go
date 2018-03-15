@@ -12,7 +12,8 @@ const (
 )
 
 func setUp() {
-	client = New(&Option{"1254217795", "AKIDkOq6C6qLgstiMqmGF2d3HKBpHYeZlpAH", "Rny65tVv9BQuHUVKxOehZFqJbifYN7g3", "ap-chengdu", "mycloud.com"})
+	client = New(&Option{"1254217795", "AKIDkOq6C6qLgstiMqmGF2d3HKBpHYeZlpAH", "Rny65tVv9BQuHUVKxOehZFqJbifYN7g3", "ap-chengdu", "myqcloud.com", "omnipay-entity-dev"})
+
 }
 
 func assert(want, condition, got interface{}) {
