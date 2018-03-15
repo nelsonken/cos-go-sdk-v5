@@ -17,6 +17,7 @@ type Conf struct {
 	RetryTimes int
 	UA         string
 	Domain     string
+	Bucket     string
 }
 
 func getDefaultConf() *Conf {
