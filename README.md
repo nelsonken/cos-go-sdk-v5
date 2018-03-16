@@ -43,7 +43,7 @@ client.Bucket(name).PutObject(...)
 - [x] 列出bucket内容
 - [x] bucket是否存在
 - [x] 列出正在上传的obj
-- [ ] ACL设置
+- [x] ACL设置
 - [ ] CORS 跨域
 - [ ] lifcycle设置 
 
