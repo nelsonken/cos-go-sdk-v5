@@ -127,10 +127,10 @@ func DeleteFile(BucketName string, FileName string) error {
 //}
 
 //下载文件
-func DownLoadBucketFile(BucketName string, FileName string) {
+func DownLoadBucketFile(BucketName string, FileName string) string {
 	ctx := cos.GetTimeoutCtx(time.Second * 60)
 	data := bytes.NewBuffer(make([]byte, 0))
 	writer := bufio.NewWriter(data)
 	Client.Bucket(BucketName).DownloadObject(ctx, FileName, writer)
-	fmt.Println(data)
+	return data.String()
 }
