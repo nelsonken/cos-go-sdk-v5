@@ -8,7 +8,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -31,13 +30,18 @@ type ObjectSlice struct {
 }
 
 // 获得云存储上文件信息
-func (b *Bucket) HeadObject(ctx context.Context, object string) (http.Header, error) {
+func (b *Bucket) HeadObject(ctx context.Context, object string) error {
 	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
 	if err == nil {
 		defer resq.Body.Close()
+	} else {
+		for k, v := range resq.Header {
+			value := fmt.Sprintf("%s", v)
+			fmt.Printf("%-18s: %s\n", k, strings.Replace(strings.Replace(value, "[", "", -1), "]", "", -1))
+		}
 	}
 
-	return resq.Header, err
+	return err
 }
 
 // UploadObject 上传文件
@@ -76,19 +80,13 @@ func (b *Bucket) DeleteObject(ctx context.Context, obj string) error {
 }
 
 // DownloadObject 下载对象
-func (b *Bucket) DownloadObject(ctx context.Context, object string, filePath string) error {
+func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer) error {
 	res, err := b.conn.Do(ctx, "GET", b.Name, object, nil, nil, nil)
 	if err != nil {
 		return err
 	}
 
-	fd, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.FileMode(0664))
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
-
-	_, err = io.Copy(fd, res.Body)
+	_, err = io.Copy(w, res.Body)
 
 	return err
 }
