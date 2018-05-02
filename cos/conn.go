@@ -6,9 +6,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -22,6 +22,17 @@ type Conn struct {
 func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params map[string]interface{}, headers map[string]string, body io.Reader) (*http.Response, error) {
 	queryStr := getQueryStr(params)
 	url := conn.buildURL(bucket, object, queryStr)
+
+	switch body.(type) {
+	case *bytes.Buffer, *bytes.Reader, *strings.Reader:
+	default:
+		b, err := ioutil.ReadAll(body)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(b)
+	}
+
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -29,7 +40,6 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 
 	conn.signHeader(req, params, headers)
 	req.Header.Set("User-Agent", conn.conf.UA)
-	req.Header.Set("Content-Length", strconv.FormatInt(req.ContentLength, 10))
 	setHeader(req, headers)
 
 	res, err := conn.c.Do(req)

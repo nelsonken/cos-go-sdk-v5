@@ -6,6 +6,19 @@ import (
 	"time"
 )
 
+var client *Client
+
+func setUp() {
+	client = New(&Option{
+		AppID:     "",
+		SecretID:  "",
+		SecretKey: "",
+		Region:    "",
+		Domain:    "", // default is myqcloud.com
+		Bucket:    "",
+	})
+}
+
 func TestBucket_UploadObject(t *testing.T) {
 	setUp()
 	bu := "hellocos"
