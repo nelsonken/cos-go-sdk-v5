@@ -26,11 +26,13 @@ func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params 
 	switch body.(type) {
 	case *bytes.Buffer, *bytes.Reader, *strings.Reader:
 	default:
-		b, err := ioutil.ReadAll(body)
-		if err != nil {
-			return nil, err
+		if body != nil {
+			b, err := ioutil.ReadAll(body)
+			if err != nil {
+				return nil, err
+			}
+			body = bytes.NewReader(b)
 		}
-		body = bytes.NewReader(b)
 	}
 
 	req, err := http.NewRequest(method, url, body)
