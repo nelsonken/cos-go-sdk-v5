@@ -19,11 +19,11 @@ func New(o *Option) *Client {
 	conf.SecretID = o.SecretID
 	conf.SecretKey = o.SecretKey
 	conf.Region = o.Region
-	
+
 	if o.Domain != "" {
-	    conf.Domain = o.Domain
+		conf.Domain = o.Domain
 	}
-	
+
 	conn := Conn{&http.Client{}, conf}
 	client.conn = &conn
 
@@ -44,7 +44,7 @@ func (c *Client) Bucket(name string) *Bucket {
 
 // GetBucketList 获取bucketlist
 func (c *Client) GetBucketList(ctx context.Context) (*ListAllMyBucketsResult, error) {
-	req, err := http.NewRequest("GET", "http://service.cos.myqcloud.com/", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://service.cos.myqcloud.com/", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *Client) GetBucketList(ctx context.Context) (*ListAllMyBucketsResult, er
 
 // CreateBucket 建立bucket
 func (c *Client) CreateBucket(ctx context.Context, name string, acl *AccessControl) error {
-	res, err := c.conn.Do(ctx, "PUT", name, "", nil, acl.GenHead(), nil)
+	res, err := c.conn.Do(ctx, http.MethodPut, name, "", nil, acl.GenHead(), nil)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -83,7 +83,7 @@ func (c *Client) CreateBucket(ctx context.Context, name string, acl *AccessContr
 
 // DeleteBucket delete a bucket
 func (c *Client) DeleteBucket(ctx context.Context, name string) error {
-	_, err := c.conn.Do(ctx, "DELETE", name, "", nil, nil, nil)
+	_, err := c.conn.Do(ctx, http.MethodDelete, name, "", nil, nil, nil)
 
 	return err
 }
@@ -91,7 +91,7 @@ func (c *Client) DeleteBucket(ctx context.Context, name string) error {
 // GetBucketACL get bucket's acl
 func (c *Client) GetBucketACL(ctx context.Context, name string) (*AccessControlPolicy, error) {
 	params := map[string]interface{}{"acl": ""}
-	res, err := c.conn.Do(ctx, "GET", name, "", params, nil, nil)
+	res, err := c.conn.Do(ctx, http.MethodGet, name, "", params, nil, nil)
 
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (c *Client) GetBucketACL(ctx context.Context, name string) (*AccessControlP
 // SetBucketACL set bucket's acl
 func (c *Client) SetBucketACL(ctx context.Context, name string, acl *AccessControl) error {
 	params := map[string]interface{}{"acl": ""}
-	res, err := c.conn.Do(ctx, "PUT", name, "", params, acl.GenHead(), nil)
+	res, err := c.conn.Do(ctx, http.MethodPut, name, "", params, acl.GenHead(), nil)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -121,7 +121,7 @@ func (c *Client) SetBucketACL(ctx context.Context, name string, acl *AccessContr
 
 // BucketExists bucket exists?
 func (c *Client) BucketExists(ctx context.Context, name string) error {
-	res, err := c.conn.Do(ctx, "HEAD", name, "", nil, nil, nil)
+	res, err := c.conn.Do(ctx, http.MethodHead, name, "", nil, nil, nil)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -131,7 +131,7 @@ func (c *Client) BucketExists(ctx context.Context, name string) error {
 
 // ListBucketContents list
 func (c *Client) ListBucketContents(ctx context.Context, name string, qc *QueryCondition) (*ListBucketResult, error) {
-	resp, err := c.conn.Do(ctx, "GET", name, "", qc.GenParams(), nil, nil)
+	resp, err := c.conn.Do(ctx, http.MethodGet, name, "", qc.GenParams(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (c *Client) ListBucketContents(ctx context.Context, name string, qc *QueryC
 
 // ListUploading list uploading task
 func (c *Client) ListUploading(ctx context.Context, bucket string, lu *ListUploadParam) (*ListMultipartUploadsResult, error) {
-	res, err := c.conn.Do(ctx, "GET", bucket, "", lu.GenParams(), nil, nil)
+	res, err := c.conn.Do(ctx, http.MethodGet, bucket, "", lu.GenParams(), nil, nil)
 	if err != nil {
 		return nil, err
 	}

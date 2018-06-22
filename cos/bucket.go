@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -31,7 +32,7 @@ type ObjectSlice struct {
 
 // 获得云存储上文件信息
 func (b *Bucket) HeadObject(ctx context.Context, object string) error {
-	resq, err := b.conn.Do(ctx, "HEAD", b.Name, object, nil, nil, nil)
+	resq, err := b.conn.Do(ctx, http.MethodHead, b.Name, object, nil, nil, nil)
 	if err == nil {
 		defer resq.Body.Close()
 	} else {
@@ -44,9 +45,8 @@ func (b *Bucket) HeadObject(ctx context.Context, object string) error {
 	return err
 }
 
-// UploadObject 上传文件
 func (b *Bucket) UploadObject(ctx context.Context, object string, content io.Reader, acl *AccessControl) error {
-	res, err := b.conn.Do(ctx, "PUT", b.Name, object, nil, acl.GenHead(), content)
+	res, err := b.conn.Do(ctx, http.MethodPut, b.Name, object, nil, acl.GenHead(), content)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -54,14 +54,13 @@ func (b *Bucket) UploadObject(ctx context.Context, object string, content io.Rea
 	return err
 }
 
-// CopyObject 复制对象
 func (b *Bucket) CopyObject(ctx context.Context, src, dst string, acl *AccessControl) error {
 	srcURL := fmt.Sprintf("%s-%s.cos.%s.%s/%s", b.Name, b.conn.conf.AppID, b.conn.conf.Region, b.conn.conf.Domain, dst)
 	header := map[string]string{
 		"x-cos-source-url": srcURL,
 	}
 
-	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, nil, header, nil)
+	res, err := b.conn.Do(ctx, http.MethodPut, b.Name, dst, nil, header, nil)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -69,9 +68,8 @@ func (b *Bucket) CopyObject(ctx context.Context, src, dst string, acl *AccessCon
 	return err
 }
 
-// DeleteObject delete object
 func (b *Bucket) DeleteObject(ctx context.Context, obj string) error {
-	res, err := b.conn.Do(ctx, "DELETE", b.Name, obj, nil, nil, nil)
+	res, err := b.conn.Do(ctx, http.MethodDelete, b.Name, obj, nil, nil, nil)
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -79,9 +77,8 @@ func (b *Bucket) DeleteObject(ctx context.Context, obj string) error {
 	return err
 }
 
-// DownloadObject 下载对象
 func (b *Bucket) DownloadObject(ctx context.Context, object string, w io.Writer) error {
-	res, err := b.conn.Do(ctx, "GET", b.Name, object, nil, nil, nil)
+	res, err := b.conn.Do(ctx, http.MethodGet, b.Name, object, nil, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -123,7 +120,7 @@ func (b *Bucket) InitSliceUpload(ctx context.Context, obj string, headers map[st
 	param := map[string]interface{}{
 		"uploads": "",
 	}
-	res, err := b.conn.Do(ctx, "POST", b.Name, obj, param, headers, nil)
+	res, err := b.conn.Do(ctx, http.MethodPost, b.Name, obj, param, headers, nil)
 	if err != nil {
 		return "", err
 	}
@@ -160,7 +157,7 @@ func (b *Bucket) CompleteSliceUpload(ctx context.Context, dst, uploadID string, 
 	param := map[string]interface{}{
 		"uploadId": uploadID,
 	}
-	res, err := b.conn.Do(ctx, "POST", b.Name, dst, param, nil, bytes.NewReader(cmuXML))
+	res, err := b.conn.Do(ctx, http.MethodPost, b.Name, dst, param, nil, bytes.NewReader(cmuXML))
 	if err == nil {
 		defer res.Body.Close()
 	}
@@ -223,7 +220,7 @@ func (b *Bucket) UploadSlice(ctx context.Context, uploadID, dst string, number i
 		"PartNumber": number,
 		"uploadId":   uploadID,
 	}
-	res, err := b.conn.Do(ctx, "PUT", b.Name, dst, param, nil, content)
+	res, err := b.conn.Do(ctx, http.MethodPut, b.Name, dst, param, nil, content)
 
 	if err != nil {
 		return FileError{"PUT数据错误:" + err.Error()}
@@ -256,7 +253,7 @@ func (b *Bucket) getFileSlices(fd *os.File, uploadID, dst string) ([]*ObjectSlic
 			size = fileSize
 		}
 		i++
-		MD5, err := getFileMD5(fd, offset, size)
+		md5, err := getFileMD5(fd, offset, size)
 		if err != nil {
 			return nil, err
 		}
@@ -266,7 +263,7 @@ func (b *Bucket) getFileSlices(fd *os.File, uploadID, dst string) ([]*ObjectSlic
 		osl.Number = i
 		osl.Offset = offset
 		osl.UploadID = uploadID
-		osl.MD5 = MD5
+		osl.MD5 = md5
 		osl.Dst = dst
 		oss = append(oss, osl)
 
@@ -301,19 +298,18 @@ func getFilePartContent(fd *os.File, offset, size int64) (io.Reader, error) {
 	return bytes.NewReader(buf), nil
 }
 
-// AbortUpload 放弃上传
 func (b *Bucket) AbortUpload(ctx context.Context, obj, uploadID string) error {
 	param := map[string]interface{}{
 		"uploadId": uploadID,
 	}
-	_, err := b.conn.Do(ctx, "DELETE", b.Name, obj, param, nil, nil)
+	_, err := b.conn.Do(ctx, http.MethodDelete, b.Name, obj, param, nil, nil)
 
 	return err
 }
 
 // ObjectExists object exists
 func (b *Bucket) ObjectExists(ctx context.Context, obj string) error {
-	_, err := b.conn.Do(ctx, "HEAD", b.Name, obj, nil, nil, nil)
+	_, err := b.conn.Do(ctx, http.MethodHead, b.Name, obj, nil, nil, nil)
 
 	return err
 }

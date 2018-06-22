@@ -18,7 +18,6 @@ type Conn struct {
 	conf *Conf
 }
 
-// Do 所有请求的入口
 func (conn *Conn) Do(ctx context.Context, method, bucket, object string, params map[string]interface{}, headers map[string]string, body io.Reader) (*http.Response, error) {
 	queryStr := getQueryStr(params)
 	url := conn.buildURL(bucket, object, queryStr)

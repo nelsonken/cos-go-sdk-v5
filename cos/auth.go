@@ -67,17 +67,18 @@ func (conn *Conn) getSignature(req *http.Request, params map[string]interface{},
 }
 
 func interfaceToString(i interface{}) string {
-	if str, ok := i.(string); ok {
-		return str
-	} else if intval, ok := i.(int); ok {
-		return strconv.Itoa(intval)
-	} else if intv, ok := i.(int64); ok {
-		return strconv.FormatInt(intv, 10)
-	} else if intv, ok := i.(uint64); ok {
-		return strconv.FormatUint(intv, 10)
+	switch x := i.(type) {
+	case string:
+		return x
+	case int:
+		return strconv.Itoa(x)
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case uint64:
+		return strconv.FormatUint(x, 10)
+	default:
+		return ""
 	}
-
-	return ""
 }
 
 func getParamStr(params map[string]interface{}) string {
