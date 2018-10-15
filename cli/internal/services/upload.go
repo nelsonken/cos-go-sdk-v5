@@ -39,7 +39,7 @@ func (us *UploadService) Upload(src string, dst string) error {
 		return err
 	}
 
-	if fi.Size() > us.client.PartSize() {
+	if fi.Size() < us.client.PartSize() {
 		r, err := os.Open(src)
 		if err != nil {
 			return err
