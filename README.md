@@ -48,7 +48,7 @@ client.Bucket(name).PutObject(...)
 - [ ] lifcycle设置 
 
 
-### objcet
+### object
 
 ---
 
