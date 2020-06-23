@@ -162,3 +162,7 @@ func (c *Client) ListUploading(ctx context.Context, bucket string, lu *ListUploa
 
 	return lmur, nil
 }
+
+func (c *Client) PartSize() int64 {
+	return c.conn.conf.PartSize
+}

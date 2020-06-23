@@ -10,6 +10,10 @@ type AccessControl struct {
 
 // GenHead 生成http head
 func (acl *AccessControl) GenHead() map[string]string {
+	if acl == nil {
+		return nil
+	}
+
 	header := map[string]string{
 		"x-cos-acl":                acl.ACL,
 		"x-cos-grant-read":         acl.GrantRead,
