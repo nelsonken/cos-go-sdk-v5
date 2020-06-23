@@ -21,7 +21,7 @@ package main
 
 import "github.com/nelsonken/cos-go-sdk-v5/cos"
 
-client := cos.New(cos.Option{})
+client := cos.New(&cos.Option{})
 client.Bucket(name).PutObject(...)
 
 ```
@@ -48,7 +48,7 @@ client.Bucket(name).PutObject(...)
 - [ ] lifcycle设置 
 
 
-### objcet
+### object
 
 ---
 
